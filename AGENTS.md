@@ -72,16 +72,45 @@ cargo test --test e2e_golden -- --nocapture
 
 # Convert a label
 cargo run -- convert testdata/amazon.zpl
+
+# Bootstrap Labelary reference PNGs for any new ZPL files (requires network)
+cargo test --test e2e_labelary bootstrap_golden_pngs -- --ignored --nocapture
+
+# Regenerate all diff images and diff reports after any rendering change
+cargo test --test e2e_diff_report -- --nocapture
 ```
 
 ## Testing Conventions
 
 - **Golden tests** compare rendered PNGs pixel-by-pixel against reference images from Labelary
-- Reference images live in `testdata/*.png`; diff outputs go to `testdata/diffs/`
+- Reference images live in `testdata/labels/*.png` and `testdata/unit/*.png`; diff outputs go to `testdata/diffs/`
 - Each label has a tolerance threshold documented in `docs/DIFF_THRESHOLDS.md`
 - After any rendering change, run `cargo test --test e2e_golden` to verify diff percentages stay within tolerance
 - Test files follow naming convention: `tests/e2e_*.rs` for e2e tests, `tests/unit_*.rs` for unit tests
 - Shared test utilities are in `tests/common/` (not compiled as tests)
+
+### Testdata Directory Layout
+
+| Directory | Canvas size | Labelary params | Purpose |
+|-----------|-------------|------------------|---------|
+| `testdata/labels/` | **813×1626 px** | 101.625mm × 203.25mm | Carrier/real-world labels |
+| `testdata/unit/` | **812×1624 px** | 101.5mm × 203.0mm | Synthetic/unit fixture labels |
+
+These sizes come from `render_helpers::default_options()` and `render_helpers::unit_options()` respectively.
+
+### Adding a New ZPL Test File
+
+1. Drop `<name>.zpl` into `testdata/unit/` (synthetic) or `testdata/labels/` (real-world carrier label)
+2. Fetch its Labelary reference PNG (requires network):
+   ```bash
+   cargo test --test e2e_labelary bootstrap_golden_pngs -- --ignored --nocapture
+   ```
+   This scans both directories and fetches a PNG **only** for ZPL files that don't already have one. Existing PNGs are never overwritten.
+3. Generate the diff comparison image:
+   ```bash
+   cargo test --test e2e_diff_report -- --nocapture
+   ```
+4. Commit both the `.zpl` and `.png` files, plus the updated files in `testdata/diffs/`.
 
 ### Rendering Change Workflow
 
@@ -89,7 +118,7 @@ When you modify any rendering-related logic (parsers, elements, drawers, barcode
 
 1. Run `cargo test --test e2e_diff_report -- --nocapture` to regenerate all diff images and both diff reports:
    - `testdata/diffs/diff_report_labels.txt` — carrier/real-world labels (813×1626)
-   - `testdata/diffs/diff_report_unit.txt` — unit/synthetic tests (Labelary reference PNGs at 812×1624; renderer produces 813×1626; 1px size diff is expected)
+   - `testdata/diffs/diff_report_unit.txt` — unit/synthetic tests (812×1624)
 2. Run `cargo test --test e2e_golden` to verify diff percentages stay within per-label tolerance thresholds
 3. Review the updated `testdata/diffs/diff_report_labels.txt` and `diff_report_unit.txt` to confirm diff percentages stay within tolerance
 4. **Commit the changed files in `testdata/diffs/`** (including updated `*.png`, `diff_report_labels.txt`, and `diff_report_unit.txt`) as part of the same PR
@@ -98,7 +127,8 @@ This ensures PR reviewers can visually inspect the before/after rendering impact
 
 ## Rendering Reference
 
-- Default canvas: 813×1626 px (101.625mm × 203.25mm at 8 dpmm)
+- **Unit canvas**: 812×1624 px (101.5mm × 203.0mm at 8 dpmm) — `render_helpers::unit_options()`
+- **Label canvas**: 813×1626 px (101.625mm × 203.25mm at 8 dpmm) — `render_helpers::default_options()`
 - Labelary API is the reference renderer: `http://api.labelary.com/v1/printers/8dpmm/labels/4.005x8.01/0/`
 - `^FO` positions elements by top-left corner; `^FT` uses baseline positioning
 - Barcode quiet zones are NOT rendered (Labelary convention)

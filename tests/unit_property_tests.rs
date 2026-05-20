@@ -228,7 +228,8 @@ mod preservation_tests {
             return;
         }
 
-        // Unit tests use smaller canvas; labels use Labelary reference size
+        // Unit files use unit_options (812×1624) to match Labelary unit reference PNGs;
+        // label files use default_options (813×1626) for Labelary label references.
         let options = if is_unit {
             render_helpers::unit_options()
         } else {

@@ -249,8 +249,8 @@ fn diff_report_labels() {
 fn diff_report_unit() {
     let dir = render_helpers::testdata_dir();
     let dirs = vec![dir.join("unit")];
-    let entries = scan_dirs(&dirs, false);
-    let report = format_report("Unit Diff Report (813×1626 baseline)", &entries);
+    let entries = scan_dirs(&dirs, true);
+    let report = format_report("Unit Diff Report (812×1624 baseline)", &entries);
 
     println!("\n{}", report);
     save_report("diff_report_unit.txt", &report);

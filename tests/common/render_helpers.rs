@@ -50,12 +50,12 @@ pub fn render_label_to_png(label: &LabelInfo, options: DrawerOptions) -> Vec<u8>
     buf.into_inner()
 }
 
-/// Smaller DrawerOptions for unit golden tests (50mm × 80mm, 8 dpmm → 400×640 px).
-/// Produces images ~5× smaller than default, making visual diffs easier to inspect.
+/// DrawerOptions matching Labelary unit test reference images (812×1624 px).
+/// Labelary returns 812×1624 for these mm parameters due to floating-point rounding.
 pub fn unit_options() -> DrawerOptions {
     DrawerOptions {
-        label_width_mm: 50.0,
-        label_height_mm: 80.0,
+        label_width_mm: 101.5,
+        label_height_mm: 203.0,
         dpmm: 8,
         ..Default::default()
     }
