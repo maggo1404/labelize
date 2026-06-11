@@ -84,9 +84,9 @@ curl -X POST http://localhost:8080/convert \
   -o label.png
 ```
 ### Run as Docker Webservice
-'''bash
+```bash
 docker compose up -d --build
-'''
+```
 
 
 ## CLI Reference
