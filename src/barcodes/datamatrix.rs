@@ -12,8 +12,10 @@ pub fn encode(
     rows: i32,
     columns: i32,
 ) -> Result<RgbaImage, String> {
+    // If the content is empty, return an empty image instead of an error.
+    // A 0×0 RgbaImage is used to represent an empty image.
     if content.is_empty() {
-        return Err("DataMatrix: empty content".to_string());
+        return Ok(RgbaImage::new(0, 0));
     }
 
     let mag = magnification.max(1) as u32;
